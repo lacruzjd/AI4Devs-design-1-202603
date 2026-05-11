@@ -347,8 +347,7 @@ graph TD
 
     %% Lado Secundario (Infraestructura y Actores conducidos)
     subgraph AdaptadoresSalida [Adaptadores de Salida / Lado Secundario]
-        DB_SQL[(Base de Datos SQL<br>PostgreSQL: Usuarios, XAI)]
-        DB_NoSQL[(Base de Datos NoSQL<br>MongoDB: CVs Parseados)]
+        DB_SQL[(Base de Datos SQL<br>PostgreSQL: Usuarios, XAI, CVs)]
         Broker[[Message Broker<br>Kafka: Eventos para IA Agéntica]]
         APIs[Sistemas Externos<br>LinkedIn, HRIS, Pasarelas]
     end
@@ -358,7 +357,6 @@ graph TD
     REST -->|Invoca| PortIn
     
     PortOut -.->|Implementado mediante SQL| DB_SQL
-    PortOut -.->|Implementado mediante JSON| DB_NoSQL
     PortOut -.->|Implementado mediante Eventos| Broker
     PortOut -.->|Implementado mediante HTTP| APIs
     
@@ -386,17 +384,19 @@ Los puertos actúan como un contrato que define cómo el núcleo interactúa con
 Son las implementaciones técnicas específicas que se "enchufan" a los puertos para comunicarse con el núcleo.
 *   **Adaptadores de Entrada (Driving Adapters):** Traducen las peticiones externas al formato que entiende el dominio. En nuestro caso, los **Controladores REST** toman el JSON que envía el reclutador desde su navegador y lo convierten en llamadas al puerto de entrada.
 *   **Adaptadores de Salida (Driven Adapters):** Traducen los requerimientos del dominio hacia las herramientas externas. 
-    *   Un adaptador tomará los datos del candidato y los guardará ejecutando código SQL en **PostgreSQL** para la auditoría ética (XAI).
+    *   Un adaptador tomará los datos del candidato y los guardará ejecutando código SQL en **PostgreSQL** (aprovechando sus capacidades JSONB para los CVs parseados y tablas relacionales para la auditoría ética XAI).
     *   Otro adaptador publicará un evento en **Kafka** para avisarle de manera asíncrona a los Agentes de Inteligencia Artificial que deben analizar un video o un currículum.
 
 ### Ventajas de este enfoque para LTI
-1. **Desacoplamiento Tecnológico Real:** Si mañana la empresa decide migrar la base de datos de currículums de MongoDB a otra tecnología no relacional, los ingenieros **solo tendrán que escribir un nuevo adaptador**. La lógica central de reclutamiento permanecerá intacta.
+1. **Desacoplamiento Tecnológico Real:** Si mañana la empresa decide migrar la base de datos de currículums de PostgreSQL a una base de datos documental (como MongoDB), los ingenieros **solo tendrán que escribir un nuevo adaptador**. La lógica central de reclutamiento permanecerá intacta.
 2. **Facilidad de Pruebas (Testing):** La lógica de negocio y los cálculos del *Match Score* se pueden probar de manera aislada (pruebas unitarias) inyectando adaptadores falsos (*mocks*), sin necesidad de levantar pesadas bases de datos o servicios en la nube.
 3. **Escalabilidad y Microservicios:** Este patrón es la base ideal para sistemas distribuidos y microservicios. Nos permite que el Motor de Inteligencia Artificial Agéntica evolucione a su propio ritmo sin romper la estabilidad del ATS principal.
 
 ---
 
 ## Nivel 3 del Modelo C4 (Diagrama de Componentes)
+
+*Nota: El Diagrama de Arquitectura Hexagonal del apartado anterior ilustra efectivamente el Nivel 2 (Contenedores) del sistema. A continuación, haremos un zoom al interior del contenedor principal mediante el Nivel 3 del Modelo C4.*
 
 El contenedor más crítico para el flujo de trabajo del reclutador es el **Microservicio de Gestión de Solicitudes (Pipeline)**. Este contenedor actúa como el corazón del ATS, recibiendo a los candidatos, gestionando su avance en las etapas de contratación y delegando el análisis pesado al ecosistema de IA.
 
