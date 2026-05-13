@@ -4,6 +4,8 @@ A partir del análisis del Documento de Requisitos del Producto (PRD) y la Arqui
 
 ---
 
+## User Stories
+
 ### 🏷️ US-01: Análisis Semántico y Matching de Currículums (NLP)
 **Historia de Usuario:**
 > Como Reclutador, quiero que el sistema analice los currículums recibidos y los compare semánticamente con la descripción de la vacante, para priorizar automáticamente a los candidatos más afines sin necesidad de revisión manual.
